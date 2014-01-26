@@ -19,17 +19,16 @@ function init(xAxis, yAxis){
 	  	.append("g")
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // setup x 
-	var xValue = function(d) { return d[xAxis];}, // data -> value
-	    xScale = d3.scale.linear().range([width, 0]), // value -> display
-	    xMap = function(d) { return xScale(xValue(d));}, // data -> display
-	    xAxe = d3.svg.axis().scale(xScale).orient("bottom");
+    //Setup Values
+	var xValue = function(d) { return d[xAxis];}; 
+	var xScale = d3.scale.linear().range([width, 0]); 
+	var xMap = function(d) { return xScale(xValue(d));}; 
+	var xAxe = d3.svg.axis().scale(xScale).orient("bottom");
 
-	// setup y
-	var yValue = function(d) { return d[yAxis];}, // data -> value
-	    yScale = d3.scale.linear().range([height, 0]), // value -> display
-	    yMap = function(d) { return yScale(yValue(d));}, // data -> display
-	    yAxe = d3.svg.axis().scale(yScale).orient("left");
+	var yValue = function(d) { return d[yAxis];}; 
+	var yScale = d3.scale.linear().range([height, 0]); 
+	var yMap = function(d) { return yScale(yValue(d));}; 
+	var yAxe = d3.svg.axis().scale(yScale).orient("left");
 
 	var cValue = function(d) { return d.variety;},
     	color = d3.scale.category10();
@@ -37,19 +36,19 @@ function init(xAxis, yAxis){
    	// Load data
 	d3.csv("data/data.csv", function(error, data) {
 
-	  // Change string (from CSV) into number format
+	  // Change string into number format
 	  data.forEach(function(d) {
 	    d.compactness = +d.compactness;
 	    d.kernelLength = +d.kernelLength;
 	    d.kernelWidth = +d.kernelWidth;
 	    d.asymmetryCoefficient = +d.asymmetryCoefficient;
 	    d.grooveLength = +d.grooveLength;
-	    //console.log(d);
 	    //console.log(d[xAxis]);
 	  });
-	  xScale.domain([d3.max(data, function(d){ return d[xAxis]})*1.02,d3.min(data, function(d){ return d[xAxis]})]);
-	  yScale.domain([d3.min(data, function(d){ return d[yAxis]}),d3.max(data, function(d){ return d[yAxis]})]);
+	  xScale.domain([d3.max(data, xValue)*1.02,d3.min(data, xValue)]);
+	  yScale.domain([d3.min(data, yValue),d3.max(data, yValue)]);
 	  
+	  //Change Axis Name
 	  var xText;
 	  var yText;
 	  if(xAxis === "compactness"){
@@ -84,7 +83,7 @@ function init(xAxis, yAxis){
 	  	yText = "Length of the Kernel Groove";
 	  }
 
-	  // x-axis
+	  //X-axis
 	  svg.append("g")
 	      .attr("class", "x axis")
 	      .attr("transform", "translate(0," + height + ")")
@@ -97,7 +96,7 @@ function init(xAxis, yAxis){
 	      .text(xText)
 	      .attr("font-size", "15px");
 
-	  // y-axis
+	  //Y-axis
 	  svg.append("g")
 	      .attr("class", "y axis")
 	      .call(yAxe)
@@ -110,56 +109,55 @@ function init(xAxis, yAxis){
 	      .text(yText)
 	      .attr("font-size", "15px");
 
-	      // draw dots
-		  svg.selectAll(".dot")
-		      .data(data)
-		    .enter().append("circle")
-		      .attr("class", "dot")
-		      .attr("r", 3.5)
-		      .attr("cx", xMap)
-		      .attr("cy", yMap)
-		      .style("fill", function(d) { return color(cValue(d));}) 
-		      .on("mouseover", function(d) {
-		      	d3.selectAll(".dot").attr("opacity",.5);
-		        d3.select(this).attr("r", 6).attr("opacity", 1);
-		        var deats = "<b>Variety:</b> " + d.variety 
-		         	+ "<br><b>Compactness:</b> " + d.compactness
-		         	+ "<br><b>Kernel Length:</b> " + d.kernelLength
-		         	+ "<br><b>Kernel Width:</b> " + d.kernelWidth
-		         	+ "<br><b>Asymmetry Coefficient:</b> " + d.asymmetryCoefficient
-		         	+ "<br><b>Groove Length:</b> " + d.grooveLength;
-		        showDetails(deats);
-		      })
-		      .on("mouseout", function(d) {
-		      	d3.selectAll(".dot").attr("opacity",1);
-		      	d3.select(this).attr("r", 3.5);
-		      	showDetails("");
-		      });
+      //Draw dots
+	  svg.selectAll(".dot")
+	      .data(data)
+	    .enter().append("circle")
+	      .attr("class", "dot")
+	      .attr("r", 3.5)
+	      .attr("cx", xMap)
+	      .attr("cy", yMap)
+	      .style("fill", function(d) { return color(cValue(d));}) 
+	      .on("mouseover", function(d) {
+	      	d3.selectAll(".dot").attr("opacity",.5);
+	        d3.select(this).attr("r", 6).attr("opacity", 1);
+	        var deats = "<b>Variety:</b> " + d.variety 
+	         	+ "<br><b>Compactness:</b> " + d.compactness
+	         	+ "<br><b>Kernel Length:</b> " + d.kernelLength
+	         	+ "<br><b>Kernel Width:</b> " + d.kernelWidth
+	         	+ "<br><b>Asymmetry Coefficient:</b> " + d.asymmetryCoefficient
+	         	+ "<br><b>Groove Length:</b> " + d.grooveLength;
+	        showDetails(deats);
+	      })
+	      .on("mouseout", function(d) {
+	      	d3.selectAll(".dot").attr("opacity",1);
+	      	d3.select(this).attr("r", 3.5);
+	      	showDetails("");
+	      });
 
-		   // draw legend
-		  var legend = svg.selectAll(".legend")
-		      .data(color.domain())
-		    .enter().append("g")
-		      .attr("class", "legend")
-		      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+	   //Draw legend for Variety
+	  var legend = svg.selectAll(".legend")
+	      .data(color.domain())
+	      .enter().append("g")
+	      .attr("class", "legend")
+	      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
-		  // draw legend colored rectangles
-		  legend.append("rect")
-		      .attr("x", width - 18)
-		      .attr("width", 18)
-		      .attr("height", 18)
-		      .style("fill", color);
+	  legend.append("rect")
+	      .attr("x", width - 18)
+	      .attr("width", 18)
+	      .attr("height", 18)
+	      .style("fill", color);
 
-		  // draw legend text
-		  legend.append("text")
-		      .attr("x", width - 24)
-		      .attr("y", 9)
-		      .attr("dy", ".35em")
-		      .style("text-anchor", "end")
-		      .text(function(d) { return d;})
+	  legend.append("text")
+	      .attr("x", width - 24)
+	      .attr("y", 9)
+	      .attr("dy", ".35em")
+	      .style("text-anchor", "end")
+	      .text(function(d) { return d;})
 
 
 		});
+	//Update the global variables
 	currentX = xAxis;
 	currentY = yAxis;
 
